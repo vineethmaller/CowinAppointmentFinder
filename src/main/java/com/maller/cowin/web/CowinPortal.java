@@ -32,4 +32,24 @@ public class CowinPortal{
 			e.printStackTrace();
 		}
 	}
+	
+	public void confirmOTPOnceReceivedOnPhone() {
+		try {
+			final int MAX_WAIT = 180;
+			int secondsCounter = 0;
+			
+			WebElement otpField = driver.findElement(By.id("mat-input-1"));
+			WebElement verifyButton = driver.findElement(By.cssSelector(".next-btn"));
+			do {
+				TimeUnit.SECONDS.sleep(1);
+				if(otpField.getText().length() >= 6) {
+					verifyButton.click();
+					break; }
+			} while(++secondsCounter <= MAX_WAIT);
+			
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }
