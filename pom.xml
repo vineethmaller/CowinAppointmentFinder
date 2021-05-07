@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.maller</groupId>
   <artifactId>cowin</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>2.0-SNAPSHOT</version>
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -14,6 +14,7 @@
     <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
     <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
     <jackson.version>2.12.3</jackson.version>
+    <selenium.chrome-driver.verision>3.141.59</selenium.chrome-driver.verision>
   </properties>
   <dependencies>
     <dependency>
@@ -37,6 +38,11 @@
     	<groupId>org.json</groupId>
     	<artifactId>json</artifactId>
     	<version>20210307</version>
+	</dependency>
+	<dependency>
+   		<groupId>org.seleniumhq.selenium</groupId>
+    	<artifactId>selenium-chrome-driver</artifactId>
+    	<version>${selenium.chrome-driver.verision}</version>
 	</dependency>
   </dependencies>
   <build>

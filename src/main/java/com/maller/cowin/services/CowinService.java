@@ -25,6 +25,7 @@ public class CowinService {
 	@SuppressWarnings("unused")
 	private static String TOKEN = null;
 	private static String HOST = "https://cdn-api.co-vin.in/api/";
+	private static String USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11";
 
 	private static final ObjectMapper mapper = new ObjectMapper();
 	private static final HttpClient httpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).build();
@@ -40,6 +41,7 @@ public class CowinService {
 			body.append("mobile", String.valueOf(mobileNumber));
 
 			HttpRequest request = (HttpRequest) HttpRequest.newBuilder().POST(BodyPublishers.ofString(body.toString()))
+					.setHeader("User-Agent", USER_AGENT)
 					.uri(GENERATE_OTP).build();
 
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -69,6 +71,7 @@ public class CowinService {
 			body.append("txnID", txnID);
 
 			HttpRequest request = (HttpRequest) HttpRequest.newBuilder().POST(BodyPublishers.ofString(body.toString()))
+					.setHeader("User-Agent", USER_AGENT)
 					.uri(CONFIRM_OTP).build();
 
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -87,6 +90,7 @@ public class CowinService {
 			final URI GET_STATES = new URI(HOST + "v2/admin/location/states");
 
 			HttpRequest request = (HttpRequest) HttpRequest.newBuilder().GET().uri(GET_STATES)
+					.setHeader("User-Agent", USER_AGENT)
 					.setHeader("Accept-Language", "hi_IN").build();
 
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -95,7 +99,8 @@ public class CowinService {
 				JSONObject body = new JSONObject(response.body());
 				String statesStr = body.getJSONArray("states").toString();
 				return mapper.readValue(statesStr, new TypeReference<List<State>>() {});
-			}
+			} else 
+				throw new Exception("Unable to fetch states. Response Status: " + response.statusCode() + " Message: " + response.body());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -108,6 +113,7 @@ public class CowinService {
 			final URI GET_DISTRICTS = new URI(HOST + "v2/admin/location/districts/" + stateID);
 
 			HttpRequest request = (HttpRequest) HttpRequest.newBuilder().GET().uri(GET_DISTRICTS)
+					.setHeader("User-Agent", USER_AGENT)
 					.setHeader("Accept-Language", "hi_IN").build();
 
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -116,7 +122,8 @@ public class CowinService {
 				JSONObject body = new JSONObject(response.body());
 				String districtsStr = body.getJSONArray("districts").toString();
 				return mapper.readValue(districtsStr, new TypeReference<List<District>>() {});
-			}
+			} else
+				throw new Exception("Unable to fetch states. Response Status: " + response.statusCode() + " Message: " + response.body());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -132,6 +139,7 @@ public class CowinService {
 			
 			HttpRequest request = (HttpRequest) HttpRequest.newBuilder().GET()
 					.uri(isWeeklySearch? CALENDAR_BY_PIN: FIND_BY_PIN)
+					.setHeader("User-Agent", USER_AGENT)
 					.setHeader("Accept-Language", "hi_IN")
 					.build();
 
@@ -145,13 +153,14 @@ public class CowinService {
 					List<Center> centers = mapper.readValue(sessionsStr, new TypeReference<List<Center>>() {});
 					List<Session> sessions = new ArrayList<>();
 					for(Center center : centers) {
-						var sessionsInCenter = center.mapToSessions();
+						List<Session> sessionsInCenter = center.mapToSessions();
 						sessions.addAll(sessionsInCenter);
 					}
 					return sessions;
 				}
 				return mapper.readValue(sessionsStr, new TypeReference<List<Session>>() {});
-			}
+			} else
+				throw new Exception("Unable to fetch states. Response Status: " + response.statusCode() + " Message: " + response.body());
 		} catch(Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -168,6 +177,7 @@ public class CowinService {
 			
 			HttpRequest request = (HttpRequest) HttpRequest.newBuilder().GET()
 					.uri(isWeeklySearch? CALENDAR_BY_DISTRICT: FIND_BY_DISTRICT)
+					.setHeader("User-Agent", USER_AGENT)
 					.setHeader("Accept-Language", "hi_IN")
 					.build();
 			
@@ -181,13 +191,14 @@ public class CowinService {
 					List<Center> centers = mapper.readValue(sessionsStr, new TypeReference<List<Center>>() {});
 					List<Session> sessions = new ArrayList<>();
 					for(Center center : centers) {
-						var sessionsInCenter = center.mapToSessions();
+						List<Session> sessionsInCenter = center.mapToSessions();
 						sessions.addAll(sessionsInCenter);
 					}
 					return sessions;
 				}
 				return mapper.readValue(sessionsStr, new TypeReference<List<Session>>() {});
-			}
+			} else
+				throw new Exception("Unable to fetch states. Response Status: " + response.statusCode() + " Message: " + response.body());	
 		} catch(Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

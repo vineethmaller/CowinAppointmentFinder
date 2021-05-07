@@ -1,5 +1,5 @@
 {
-	"ContinousSearch": false,
+	"ContinousSearch": true,
 	"PollIntervalInSeconds": 5,
 	"Method":"BY_DISTRICT",
 	"SearchData": {
@@ -7,6 +7,7 @@
 					"district": "BBMP"
 					},
 	"Weekly": true,
-	"AgeGroup": 18,
-	"Date": "11052021"
+	"AgeGroup": 45,
+	"Date": "10052021",
+	"MobileNumber": "7907584141"
 }

@@ -15,6 +15,7 @@ import org.json.JSONObject;
 
 import com.maller.cowin.model.Session;
 import com.maller.cowin.services.VaccineService;
+import com.maller.cowin.web.CowinPortal;
 
 public final class App {
 	private boolean isContinuosSearch = false;
@@ -67,25 +68,6 @@ public final class App {
     	}
     }
     
-    protected void displayAvailableSessions(List<Session> sessions) {
-    	try {
-    		long totalAvailableDoses = 0;
-    		totalAvailableDoses = sessions.stream()
-    				.map(session -> Integer.parseInt(session.getAvailable_capacity()))
-    				.reduce(0, Integer::sum);
-    		String totalSessionsStr = "Total Sessions: " + sessions.size();
-    		String totalDosesStr = "Total Doses Available: " + totalAvailableDoses;
-    		
-    		System.out.println();
-    		System.out.println(totalSessionsStr);
-    		System.out.println(totalDosesStr);
-    		sessions.stream().forEach(session -> System.out.print(session.getMinDetails()));
-    	} catch(Exception e) {
-    		// TODO Auto-generated catch block
-    		e.printStackTrace();
-    	}
-    }
-    
     protected void exportSessionsToFile(List<Session> sessions) {
     	try {
     		StringBuilder builder = new StringBuilder();
@@ -114,8 +96,13 @@ public final class App {
     			System.out.println("Polling for session at " + LocalDateTime.now().toLocalTime());
     			sessions = VaccineService.getSessionsByMethod(searchMethod, searchData, date, isWeeklySearch);
     			sessions = VaccineService.filterAvailableSessionsByAgeGroup(sessions, ageGroup);
-    			if(!sessions.isEmpty())
-    				break;
+    			if(!sessions.isEmpty()) {
+    				int totalDoses = sessions.stream()
+    	    				.map(session -> Integer.parseInt(session.getAvailable_capacity()))
+    	    				.reduce(0, Integer::sum);
+    				if(totalDoses != 0)
+    					break;
+    			}
     			TimeUnit.SECONDS.sleep(pollIntervalInSeconds);
     		} while(isContinuosSearch);
     	} catch(Exception e) {
@@ -124,10 +111,22 @@ public final class App {
     	}
 		return sessions;
     }
+    
+    protected void openCowinPortalOnceSessionAvailable(String mobileNumber) {
+    	try {
+    		CowinPortal portal = new CowinPortal();
+    		portal.open();
+    		portal.insertMobileNumberAndGetOTP(mobileNumber);
+    		
+    	} catch(Exception e) {
+    		// TODO Auto-generated catch block
+    		e.printStackTrace();
+    	}
+    }
 
     public static void main(String[] args) {
     	App app = new App();
-    	String filePath = "search_parameters.txt";
+    	String filePath = "src\\main\\resources\\search_parameters.txt";
     	
     	JSONObject parametersJSON = app.getSearchParametersFromFile(filePath);
     	if(parametersJSON == null)
@@ -139,5 +138,7 @@ public final class App {
     		return;
     	}
     	app.exportSessionsToFile(sessions);
+    	if(parametersJSON.has("MobileNumber"))
+    		app.openCowinPortalOnceSessionAvailable(parametersJSON.getString("MobileNumber"));
     }
 }
