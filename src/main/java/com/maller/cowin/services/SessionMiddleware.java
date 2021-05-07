@@ -8,10 +8,11 @@ import java.util.stream.Collectors;
 import com.maller.cowin.model.District;
 import com.maller.cowin.model.Session;
 import com.maller.cowin.model.State;
+import com.maller.cowin.services.api.CowinAPIService;
 
-public class VaccineService {
+public class SessionMiddleware {
 	
-	private VaccineService() {}
+	private SessionMiddleware() {}
 	
 	public static List<Session> filterAvailableSessionsByAgeGroup(List<Session> sessions, int minAgeGroup) {
 		return sessions.parallelStream()
@@ -26,7 +27,7 @@ public class VaccineService {
 	}
 	
 	public static State getStateWithName(String stateName) {
-		List<State> states = CowinService.getStates();
+		List<State> states = CowinAPIService.getStates();
 		final String formattedStateName = stateName.toLowerCase().trim();
 		return states.parallelStream()
 				.filter(state -> state.getState_name().equalsIgnoreCase(formattedStateName))
@@ -34,7 +35,7 @@ public class VaccineService {
 	}
 	
 	public static District getDistrictInStateWithName(String districtName, int stateId) {
-		List<District> districts = CowinService.getDistrictsInState(stateId);
+		List<District> districts = CowinAPIService.getDistrictsInState(stateId);
 		final String formattedDistrictName = districtName.toLowerCase().trim();
 		return districts.parallelStream()
 				.filter(district -> district.getDistrict_name().equalsIgnoreCase(formattedDistrictName))
@@ -44,7 +45,7 @@ public class VaccineService {
 	public static List<Session> getSessionsByMethod(String method, Map<String, String> searchData, LocalDate date, boolean isWeeklySearch) throws Exception {
 		if(method.equals("BY_PINCODE")) {
 			long pinCode = Long.parseLong(searchData.get("PIN_CODE"));
-			return CowinService.getSessionsByPINCodeAndDate(pinCode, date, isWeeklySearch);
+			return CowinAPIService.getSessionsByPINCodeAndDate(pinCode, date, isWeeklySearch);
 		} else if(method.equals("BY_DISTRICT")) {
 			String stateName = searchData.get("STATE");
 			String districtName = searchData.get("DISTRICT");
@@ -57,7 +58,7 @@ public class VaccineService {
 			if(district == null)
 				throw new Exception("No district found with given name");
 		
-			return CowinService.getSessionsByDistrictAndDate(district.getDistrict_id(), date, isWeeklySearch);
+			return CowinAPIService.getSessionsByDistrictAndDate(district.getDistrict_id(), date, isWeeklySearch);
 		} else
 			throw new Exception("Invalid Method");
 	}

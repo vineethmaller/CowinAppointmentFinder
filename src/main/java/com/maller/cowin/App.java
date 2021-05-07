@@ -3,36 +3,26 @@ package com.maller.cowin;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.maller.cowin.model.Session;
-import com.maller.cowin.services.VaccineService;
+import com.maller.cowin.services.SessionFinder;
+import com.maller.cowin.utils.MailUtil;
 import com.maller.cowin.web.CowinPortal;
 
 public final class App {
-	private boolean isContinuosSearch = false;
-	private long pollIntervalInSeconds = 15;
 	
-	private String searchMethod = "BY_PINCODE";
-	private JSONObject methodData = new JSONObject("{ \"SearchData\": { \"pin_code\" : \"560049\" } }");
-	private boolean isWeeklySearch = false;
-	
-	private int ageGroup = 18;
-	private LocalDate date = LocalDate.now(); 
+	private static final String DEFAULT_SEARCH_PARAM_FILEPATH = "src\\main\\resources\\parameters.txt";
 	
     private App() {
     }
     
-    protected JSONObject getSearchParametersFromFile(String filePath) {
+    protected static JSONObject getParametersFromFile(String filePath) {
     	try {
 			String parametersJSONString = Files.readString(Path.of(filePath));
 			return new JSONObject(parametersJSONString);
@@ -42,78 +32,29 @@ public final class App {
 		}
 		return null;
     }
-    
-    protected void initializeSearchParameters(JSONObject parametersJSON) {
-    	try {
-    		if(parametersJSON.has("ContinousSearch"))
-    			isContinuosSearch = parametersJSON.getBoolean("ContinousSearch");
-    		
-    		if(parametersJSON.has("PollIntervalInSeconds"))
-    			pollIntervalInSeconds = parametersJSON.getLong("PollIntervalInSeconds");
-    		
-    		if(parametersJSON.has("Method"))
-    			searchMethod = parametersJSON.getString("Method").toUpperCase();
-    			methodData = parametersJSON.getJSONObject("SearchData");
-    		
-    		if(parametersJSON.has("Weekly"))
-    			isWeeklySearch = parametersJSON.getBoolean("Weekly");
-    		
-    		if(parametersJSON.has("AgeGroup"))
-    			ageGroup = parametersJSON.getInt("AgeGroup");
-    		
-    		if(parametersJSON.has("Date"))
-    			date = LocalDate.parse(parametersJSON.getString("Date"), DateTimeFormatter.ofPattern("ddMMyyyy"));
-    	} catch(Exception e) {
-    		// TODO Auto-generated catch block
-    		e.printStackTrace();
-    	}
-    }
-    
-    protected void exportSessionsToFile(List<Session> sessions) {
+      
+    protected static String exportVaccineSessionListToFile(List<Session> sessions) {
     	try {
     		StringBuilder builder = new StringBuilder();
-    		long totalAvailableDoses = 0;
-    		totalAvailableDoses = sessions.stream()
-    				.map(session -> Integer.parseInt(session.getAvailable_capacity()))
-    				.reduce(0, Integer::sum);
+    		long totalAvailableDoses = SessionFinder.getTotalAvailableDoses(sessions);
     		builder.append("\nTotal Sessions: ").append(sessions.size());
     		builder.append("\nTotal Doses Available: ").append(totalAvailableDoses);
-    		sessions.stream().forEach(session -> builder.append(session.getMinDetails()));
     		System.out.println(builder.toString());
+    		
+    		sessions.stream().forEach(session -> builder.append(session.getMinDetails()));
     		Path fileName = Path.of(".\\Sessions_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("ddMMyyyy_hhmmss")) + ".txt");
     		Files.writeString(fileName, builder.toString());
+    		return fileName.toString();
     	} catch(Exception e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();
+    		return null;
     	}
     }
     
-    protected List<Session> searchAvailability() {
-    	List<Session> sessions = null;
-    	try {
-    		Map<String, String> searchData = new HashMap<>();
-    		methodData.keys().forEachRemaining(key -> searchData.put(key.toUpperCase(), methodData.getString(key)));
-    		do {
-    			System.out.println("Polling for session at " + LocalDateTime.now().toLocalTime());
-    			sessions = VaccineService.getSessionsByMethod(searchMethod, searchData, date, isWeeklySearch);
-    			sessions = VaccineService.filterAvailableSessionsByAgeGroup(sessions, ageGroup);
-    			if(!sessions.isEmpty()) {
-    				int totalDoses = sessions.stream()
-    	    				.map(session -> Integer.parseInt(session.getAvailable_capacity()))
-    	    				.reduce(0, Integer::sum);
-    				if(totalDoses != 0)
-    					break;
-    			}
-    			TimeUnit.SECONDS.sleep(pollIntervalInSeconds);
-    		} while(isContinuosSearch);
-    	} catch(Exception e) {
-    		// TODO Auto-generated catch block
-    		e.printStackTrace();
-    	}
-		return sessions;
-    }
     
-    protected void openCowinPortalOnceSessionAvailable(String mobileNumber) {
+    
+    protected static void bookAppointmentOnCowinPortal(String mobileNumber) {
     	try {
     		CowinPortal portal = new CowinPortal();
     		portal.open();
@@ -124,27 +65,80 @@ public final class App {
     		e.printStackTrace();
     	}
     }
+    
+    private static int getSearchParameterIndexInArgs(String[] args) {
+    	return Arrays.asList(args).indexOf("--search_params") + 1;
+    }
 
     public static void main(String[] args) {
     	String filePath;
-    	App app = new App();
-    	int searchParamIndex = Arrays.asList(args).indexOf("--search_params")+1;
+    	int searchParamIndex = getSearchParameterIndexInArgs(args);
     	if(searchParamIndex == 0)
-    		filePath = "src\\main\\resources\\search_parameters.txt";
+    		filePath = DEFAULT_SEARCH_PARAM_FILEPATH;
     	else
     		filePath = args[searchParamIndex];
     		
-    	JSONObject parametersJSON = app.getSearchParametersFromFile(filePath);
-    	if(parametersJSON == null)
+    	JSONObject parameters = getParametersFromFile(filePath);
+    	if(parameters == null)
     		return;
-    	app.initializeSearchParameters(parametersJSON);
-    	List<Session> sessions = app.searchAvailability();
-    	if(sessions.isEmpty()) {
-    		System.out.println("No Vaccination sessions found");
-    		return;
-    	}
-    	app.exportSessionsToFile(sessions);
-    	if(parametersJSON.has("MobileNumber"))
-    		app.openCowinPortalOnceSessionAvailable(parametersJSON.getString("MobileNumber"));
+    	
+    	SessionFinder finder = new SessionFinder(parameters);
+    	List<Session> sessions = finder.find();
+    	boolean isDosesAvailable = SessionFinder.getTotalAvailableDoses(sessions) > 0? true: false;
+    	if(isDosesAvailable) {
+    		String exportedFile = exportVaccineSessionListToFile(sessions);
+    		parameters.put("ExportedFile", exportedFile);
+    		
+    		boolean hasMailDetails = parameters.has("Mail");
+    		if(hasMailDetails)
+    			sendMailToUser(parameters);
+    		
+    		boolean hasMobileNumber = parameters.has("MobileNumber");
+    		if(hasMobileNumber) {
+    			String mobileNumber = parameters.getString("MobileNumber");
+    			bookAppointmentOnCowinPortal(mobileNumber);
+    		}
+    	} else
+    		System.out.println("No vaccine doses found");
     }
+
+	private static void sendMailToUser(JSONObject parameters) {
+		try {
+			final String SUBJECT = "Cowin vaccine session found";
+			StringBuilder bodyBuilder = new StringBuilder();
+			
+			JSONObject mailDetails = parameters.getJSONObject("Mail");
+			String host = mailDetails.getString("Host");
+			String port = mailDetails.getString("Port");
+			boolean isAuth = mailDetails.getBoolean("IsAuth");
+			boolean isEnableStartTLS = mailDetails.getBoolean("EnableStartTLS");
+			MailUtil mailer = new MailUtil(host, port, isAuth, isEnableStartTLS);
+			
+			
+			String username = mailDetails.getString("username");
+			String password = mailDetails.getString("password");
+			String fromAddress = mailDetails.getString("fromAddress");
+			mailer.authenticate(username, password, fromAddress);
+			
+			JSONArray toAddressList = mailDetails.getJSONArray("toAddress");
+			toAddressList.forEach(toAddress -> mailer.setRecepient((String) toAddress, "to"));
+			
+			bodyBuilder.append("Hi, \n");
+			bodyBuilder.append("Cowin sessions are detected as per your preference.\n\n");
+			bodyBuilder.append("Please login immediately to book an appointment.\n\n");
+			bodyBuilder.append("Thanks & Regards,\n");
+			bodyBuilder.append("Cowin appointment finder");
+			
+			mailer.composeMail(SUBJECT, bodyBuilder.toString());
+			boolean hasExportedFile = parameters.has("ExportedFile");
+			if(hasExportedFile) {
+				String exportedFile = parameters.getString("ExportedFile");
+				mailer.addAttachment(exportedFile);
+			}
+			mailer.sendMail();
+		} catch(Exception e) {
+			// TODO Auto-generated catch block
+    		e.printStackTrace();
+		}
+	}
 }

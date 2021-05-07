@@ -1,4 +1,4 @@
-package com.maller.cowin.services;
+package com.maller.cowin.services.api;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -20,7 +20,7 @@ import com.maller.cowin.model.District;
 import com.maller.cowin.model.Session;
 import com.maller.cowin.model.State;
 
-public class CowinService {
+public class CowinAPIService {
 
 	@SuppressWarnings("unused")
 	private static String TOKEN = null;
@@ -30,7 +30,7 @@ public class CowinService {
 	private static final ObjectMapper mapper = new ObjectMapper();
 	private static final HttpClient httpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).build();
 
-	private CowinService() {
+	private CowinAPIService() {
 	}
 
 	public static String generateOTP(long mobileNumber) {

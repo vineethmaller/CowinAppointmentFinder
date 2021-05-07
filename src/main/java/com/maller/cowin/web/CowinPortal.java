@@ -6,7 +6,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-import com.maller.cowin.Utils.SeleniumUtils;
+import com.maller.cowin.utils.SeleniumUtils;
 
 public class CowinPortal{
 	private static final String COWIN_PORTAL_URL = "https://selfregistration.cowin.gov.in/";
