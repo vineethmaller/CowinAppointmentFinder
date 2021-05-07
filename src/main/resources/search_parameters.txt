@@ -1,0 +1,12 @@
+{
+	"ContinousSearch": false,
+	"PollIntervalInSeconds": 5,
+	"Method":"BY_DISTRICT",
+	"SearchData": {
+					"state": "Karnataka",
+					"district": "BBMP"
+					},
+	"Weekly": true,
+	"AgeGroup": 18,
+	"Date": "11052021"
+}
