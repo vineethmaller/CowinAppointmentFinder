@@ -14,7 +14,7 @@ public class SeleniumUtils {
 		System.setProperty("webdriver.chrome.driver", chromeDriverPath);
 		
 		ChromeOptions options = new ChromeOptions();
-		//options.addArguments("--window-size=1920,1080");
+		options.addArguments("--window-size=1920,1080");
 		return new ChromeDriver(options);
 	}
 	

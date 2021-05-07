@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,9 +126,14 @@ public final class App {
     }
 
     public static void main(String[] args) {
+    	String filePath;
     	App app = new App();
-    	String filePath = "src\\main\\resources\\search_parameters.txt";
-    	
+    	int searchParamIndex = Arrays.asList(args).indexOf("--search_params")+1;
+    	if(searchParamIndex == 0)
+    		filePath = "src\\main\\resources\\search_parameters.txt";
+    	else
+    		filePath = args[searchParamIndex];
+    		
     	JSONObject parametersJSON = app.getSearchParametersFromFile(filePath);
     	if(parametersJSON == null)
     		return;
