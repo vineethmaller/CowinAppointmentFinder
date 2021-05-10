@@ -7,8 +7,8 @@
 			"district": "BBMP"
 			},
 	"Weekly": true,
-	"AgeGroup": 45,
-	"Date": "08052021",
+	"AgeGroup": 18,
+	"Date": "10052021",
 	"MobileNumber": "1234567890",
 	"Mail": {
 			"Host": "smtp.gmail.com",

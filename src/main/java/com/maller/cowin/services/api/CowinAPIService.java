@@ -48,14 +48,14 @@ public class CowinAPIService {
 			if (response.statusCode() == 200) {
 				body = new JSONObject(response.body());
 				return body.getString("txnId");
-			}
-
-			return null;
+			} else
+				throw new Exception("Unable to generate OTP.\n Response Status: " + response.statusCode() + " Message: " + response.body());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return null;
+			
 		}
+		return null;
 	}
 
 	public static void confirmOTP(String txnID, String otp) {
@@ -78,7 +78,8 @@ public class CowinAPIService {
 			if (response.statusCode() == 200) {
 				body = new JSONObject(response.body());
 				TOKEN = body.getString("token");
-			}
+			} else
+				throw new Exception("Unable to confirm OTP. Response Status: " + response.statusCode() + " Message: " + response.body());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -123,7 +124,7 @@ public class CowinAPIService {
 				String districtsStr = body.getJSONArray("districts").toString();
 				return mapper.readValue(districtsStr, new TypeReference<List<District>>() {});
 			} else
-				throw new Exception("Unable to fetch states. Response Status: " + response.statusCode() + " Message: " + response.body());
+				throw new Exception("Unable to fetch districts. Response Status: " + response.statusCode() + " Message: " + response.body());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -160,7 +161,7 @@ public class CowinAPIService {
 				}
 				return mapper.readValue(sessionsStr, new TypeReference<List<Session>>() {});
 			} else
-				throw new Exception("Unable to fetch states. Response Status: " + response.statusCode() + " Message: " + response.body());
+				throw new Exception("Unable to fetch sessions by pin code. Response Status: " + response.statusCode() + " Message: " + response.body());
 		} catch(Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -198,7 +199,7 @@ public class CowinAPIService {
 				}
 				return mapper.readValue(sessionsStr, new TypeReference<List<Session>>() {});
 			} else
-				throw new Exception("Unable to fetch states. Response Status: " + response.statusCode() + " Message: " + response.body());	
+				throw new Exception("Unable to fetch sessions by district. Response Status: " + response.statusCode() + " Message: " + response.body());	
 		} catch(Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

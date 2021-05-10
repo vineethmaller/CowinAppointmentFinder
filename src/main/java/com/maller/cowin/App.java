@@ -86,6 +86,7 @@ public final class App {
     	List<Session> sessions = finder.find();
     	boolean isDosesAvailable = SessionFinder.getTotalAvailableDoses(sessions) > 0? true: false;
     	if(isDosesAvailable) {
+    		sessions = SessionFinder.filterSessionsByMinimumDose(sessions, 1);
     		String exportedFile = exportVaccineSessionListToFile(sessions);
     		parameters.put("ExportedFile", exportedFile);
     		

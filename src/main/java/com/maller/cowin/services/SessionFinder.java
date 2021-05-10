@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 
@@ -55,8 +56,8 @@ public class SessionFinder {
     	try {
     		Map<String, String> searchData = new HashMap<>();
     		methodData.keys().forEachRemaining(key -> searchData.put(key.toUpperCase(), methodData.getString(key)));
+    		System.out.println("Polling for vaccine sessions from " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss")));
     		do {
-    			System.out.println("Polling for session at " + LocalDateTime.now().toLocalTime());
     			sessions = SessionMiddleware.getSessionsByMethod(searchMethod, searchData, date, isWeeklySearch);
     			sessions = SessionMiddleware.filterAvailableSessionsByAgeGroup(sessions, ageGroup);
     			if(!sessions.isEmpty()) {
@@ -77,5 +78,9 @@ public class SessionFinder {
 		return sessions.stream()
 		.map(session -> Integer.parseInt(session.getAvailable_capacity()))
 		.reduce(0, Integer::sum);
+	}
+	
+	public static List<Session> filterSessionsByMinimumDose(List<Session> sessions, int minimumDoseAvailable) {
+		return sessions.stream().filter(session -> Integer.parseInt(session.getAvailable_capacity())>=minimumDoseAvailable).collect(Collectors.toList());
 	}
 }

@@ -1,4 +1,4 @@
-package com.maller.cowin_appointment_finder;
+package com.maller.cowin;
 
 import org.junit.jupiter.api.Test;
 
