@@ -20,10 +20,10 @@ public class SessionFinder {
 	
 	private String searchMethod = "BY_PINCODE";
 	private JSONObject methodData = new JSONObject("{ \"SearchData\": { \"pin_code\" : \"560049\" } }");
-	private boolean isWeeklySearch = false;
+	private boolean isWeeklySearch = true;
 	
 	private int ageGroup = 18;
-	private LocalDate date = LocalDate.now(); 
+	private LocalDate date = LocalDate.now().plusDays(1); 
 	
 	public SessionFinder(JSONObject searchParameters) {
     	try {

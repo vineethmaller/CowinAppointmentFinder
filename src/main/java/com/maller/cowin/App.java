@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -52,8 +53,6 @@ public final class App {
     	}
     }
     
-    
-    
     protected static void bookAppointmentOnCowinPortal(String mobileNumber) {
     	try {
     		CowinPortal portal = new CowinPortal();
@@ -88,11 +87,12 @@ public final class App {
     	if(isDosesAvailable) {
     		sessions = SessionFinder.filterSessionsByMinimumDose(sessions, 1);
     		String exportedFile = exportVaccineSessionListToFile(sessions);
-    		parameters.put("ExportedFile", exportedFile);
     		
     		boolean hasMailDetails = parameters.has("Mail");
-    		if(hasMailDetails)
-    			sendMailToUser(parameters);
+    		if(hasMailDetails) {
+    			JSONObject mailDetails = parameters.getJSONObject("Mail");
+    			sendMailToUser(mailDetails, exportedFile);
+    		}
     		
     		boolean hasMobileNumber = parameters.has("MobileNumber");
     		if(hasMobileNumber) {
@@ -103,12 +103,12 @@ public final class App {
     		System.out.println("No vaccine doses found");
     }
 
-	private static void sendMailToUser(JSONObject parameters) {
+	private static void sendMailToUser(JSONObject mailDetails, String exportedSessionsFilePath) {
 		try {
 			final String SUBJECT = "Cowin vaccine session found";
 			StringBuilder bodyBuilder = new StringBuilder();
 			
-			JSONObject mailDetails = parameters.getJSONObject("Mail");
+			
 			String host = mailDetails.getString("Host");
 			String port = mailDetails.getString("Port");
 			boolean isAuth = mailDetails.getBoolean("IsAuth");
@@ -131,11 +131,7 @@ public final class App {
 			bodyBuilder.append("Cowin appointment finder");
 			
 			mailer.composeMail(SUBJECT, bodyBuilder.toString());
-			boolean hasExportedFile = parameters.has("ExportedFile");
-			if(hasExportedFile) {
-				String exportedFile = parameters.getString("ExportedFile");
-				mailer.addAttachment(exportedFile);
-			}
+			mailer.addAttachment(exportedSessionsFilePath);
 			mailer.sendMail();
 		} catch(Exception e) {
 			// TODO Auto-generated catch block
