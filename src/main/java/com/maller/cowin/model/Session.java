@@ -300,12 +300,13 @@ public class Session {
 	
 	public String getMinDetails() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("\nName: ").append(this.block_name);
+		builder.append("\nName: ").append(this.name);
 		builder.append("\nAddress: ").append(this.address);
 		builder.append("\nPIN Code: ").append(this.pincode);
 		builder.append("\nAge Group: ").append(this.min_age_limit);
 		builder.append("\nVaccine Name: ").append(this.vaccine);
 		builder.append("\nAvailable Doses: ").append(this.available_capacity);
+		builder.append("\nPIN Code: ").append(this.pincode);
 		builder.append("\n");
 		return builder.toString();
 	}
